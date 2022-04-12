@@ -7,6 +7,7 @@ authors = ["Patricio Serrano <serranomorantepatricio@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.9"
 sendgrid = "^6.9.7"
+python-dotenv = "^0.20.0"
 
 [tool.poetry.dev-dependencies]
 
