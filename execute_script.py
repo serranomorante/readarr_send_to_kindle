@@ -11,9 +11,9 @@ from typing import List
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import (Mail, Attachment, FileContent, FileName, FileType, Disposition)
 
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 
-load_dotenv()
+keys = dotenv_values(".env")
 
 IGNORED_EXTENSIONS = ["pdf", "m4b", "mp3"]
 OUTPUT_FORMAT = "mobi"
@@ -21,9 +21,9 @@ RETRIES = 5
 
 book_path = os.environ.get("readarr_addedbookpaths")
 event_type = os.environ.get("readarr_eventtype")
-api_key = os.getenv("READARR_SNDGRD_AP_KY")
-kindle_email = os.getenv("READARR_KINDLE_EMAIL")
-from_email = os.getenv("READARR_FROM_EMAIL")
+api_key = keys.get("READARR_SNDGRD_AP_KY")
+kindle_email = keys.get("READARR_KINDLE_EMAIL")
+from_email = keys.get("READARR_FROM_EMAIL")
 
 
 if not api_key:
