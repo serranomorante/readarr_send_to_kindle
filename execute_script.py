@@ -1,4 +1,4 @@
-#!/home/$USER/.pyenv/shims/python
+#!/home/<username>/.pyenv/versions/3.9.9/bin/python
 
 # Inspired by
 # https://github.com/anuragrana/Python-Scripts/blob/master/Convert-Ebook-To-Kindle-Format.py
@@ -12,11 +12,14 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import (Mail, Attachment, FileContent, FileName, FileType, Disposition)
 
 from dotenv import dotenv_values
-keys = dotenv_values("./.env")
 
-print(f"## current working directory: {os.getcwd()}")
 
-print(f"keys: {keys}")
+# /home/<username>
+cwd = os.getcwd()
+project_path = os.path.join(cwd, "scripts/readarr_send_to_kindle/")
+
+# regular environment variables are strip out by readarr
+environment_variables = dotenv_values(f"{project_path}.env")
 
 IGNORED_EXTENSIONS = ["pdf", "m4b", "mp3"]
 OUTPUT_FORMAT = "mobi"
@@ -24,17 +27,14 @@ RETRIES = 5
 
 book_path = os.environ.get("readarr_addedbookpaths")
 event_type = os.environ.get("readarr_eventtype")
-api_key = keys.get("READARR_SNDGRD_AP_KY")
-kindle_email = keys.get("READARR_KINDLE_EMAIL")
-from_email = keys.get("READARR_FROM_EMAIL")
-user = keys.get("CURRENT_USER")
-
+api_key = environment_variables.get("READARR_SNDGRD_AP_KY")
+kindle_email = environment_variables.get("READARR_KINDLE_EMAIL")
+from_email = environment_variables.get("READARR_FROM_EMAIL")
 
 if not api_key:
     print("SendGrid API Key doesn't exists")
     sys.exit(0)
 
-    
 if event_type == "Test":
     sys.exit(0)
 
@@ -45,7 +45,6 @@ if not book_path:
 
 if not event_type:
     sys.exit(0)
-
 
 if event_type != "Download":
     sys.exit(0)
@@ -111,7 +110,8 @@ if converted_filename in current_filenames:
 
 
 # Convert to mobi
-result = subprocess.call(["/home/$USER/calibre-bin/calibre/ebook-convert", book_path, new_book_path])
+calibre_bin_path = os.path.join(cwd, "calibre-bin/calibre/")
+result = subprocess.call([f"{calibre_bin_path}ebook-convert", book_path, new_book_path])
 
 
 if int(result) != 0:
