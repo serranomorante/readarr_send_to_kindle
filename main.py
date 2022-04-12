@@ -1,4 +1,4 @@
-#!/home/$USER/.pyenv/shims/python3
+#!/home/$USER/.pyenv/shims/python
 
 # Inspired by
 # https://github.com/anuragrana/Python-Scripts/blob/master/Convert-Ebook-To-Kindle-Format.py
