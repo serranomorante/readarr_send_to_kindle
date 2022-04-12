@@ -13,7 +13,9 @@ from sendgrid.helpers.mail import (Mail, Attachment, FileContent, FileName, File
 
 from dotenv import dotenv_values
 
-keys = dotenv_values(".env")
+keys = dotenv_values("./.env")
+
+print(f"keys: {keys}")
 
 IGNORED_EXTENSIONS = ["pdf", "m4b", "mp3"]
 OUTPUT_FORMAT = "mobi"
