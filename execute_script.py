@@ -12,8 +12,9 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import (Mail, Attachment, FileContent, FileName, FileType, Disposition)
 
 from dotenv import dotenv_values
-
 keys = dotenv_values("./.env")
+
+print(f"## current working directory: {os.getcwd()}")
 
 print(f"keys: {keys}")
 
@@ -26,6 +27,7 @@ event_type = os.environ.get("readarr_eventtype")
 api_key = keys.get("READARR_SNDGRD_AP_KY")
 kindle_email = keys.get("READARR_KINDLE_EMAIL")
 from_email = keys.get("READARR_FROM_EMAIL")
+user = keys.get("CURRENT_USER")
 
 
 if not api_key:
