@@ -1,11 +1,10 @@
 #!/home/<username>/.pyenv/versions/3.9.9/bin/python
 
 # Inspired by
-# https://github.com/anuragrana/Python-Scripts/blob/master/Convert-Ebook-To-Kindle-Format.py
-# and
-# https://gist.github.com/vaind/14061727a20400dea625cecf5ddc3132
+# - https://github.com/anuragrana/Python-Scripts/blob/master/Convert-Ebook-To-Kindle-Format.py
+# - https://gist.github.com/vaind/14061727a20400dea625cecf5ddc3132
 
-import subprocess, os, sys, base64, time
+import subprocess, os, sys, base64, time, logging
 from typing import List
 
 from sendgrid import SendGridAPIClient
@@ -13,12 +12,14 @@ from sendgrid.helpers.mail import (Mail, Attachment, FileContent, FileName, File
 
 from dotenv import dotenv_values
 
+logger = logging.getLogger(__name__)
+
+logger.info("Custom script started.")
 
 # /home/<username>
 cwd = os.getcwd()
 project_path = os.path.join(cwd, "scripts/readarr_send_to_kindle/")
-
-# regular environment variables are strip out by readarr
+# Regular environment variables are strip out by readarr
 environment_variables = dotenv_values(f"{project_path}.env")
 
 IGNORED_EXTENSIONS = ["pdf", "m4b", "mp3"]
@@ -31,27 +32,20 @@ api_key = environment_variables.get("READARR_SNDGRD_AP_KY")
 kindle_email = environment_variables.get("READARR_KINDLE_EMAIL")
 from_email = environment_variables.get("READARR_FROM_EMAIL")
 
-if not api_key:
-    print("SendGrid API Key doesn't exists")
-    sys.exit(0)
-
+if not api_key: sys.exit("SendGrid API Key doesn't exists")
 if event_type == "Test":
+    logger.info("Closing the program because we are in Readarr's test environment")
     sys.exit(0)
-
-
-if not book_path:
-    sys.exit(0)
-
-
-if not event_type:
-    sys.exit(0)
-
+if not book_path: sys.exit("Book path doesn't exists")
+if not event_type: sys.exit("There's no event type to work with")
 if event_type != "Download":
+    logger.warning("readarr_eventtype should be 'Download' but %s was returned", event_type)
     sys.exit(0)
 
 
 def get_folder(filepath: str) -> str:
     """Get the folder of the file.
+
     The `/` is necessary for when we want
     to leave only the filename from the directory.
     Without `/` at the end, the filename would be `/filename`
@@ -102,21 +96,24 @@ converted_filename = get_converted_filename(filename)
 new_book_path = folder + converted_filename
 
 if ext.lower() in IGNORED_EXTENSIONS:
+    logger.info("Closing the program because %s is an ignored extension", ext.lower())
     sys.exit(0)
 
 
 if converted_filename in current_filenames:
+    logger.info("Closing the program because %s already exists", converted_filename)
     sys.exit(0)
 
 
-# Convert to mobi
+# Conversion to mobi
+logger.info("Starting book conversion to mobi")
 calibre_bin_path = os.path.join(cwd, "calibre-bin/calibre/")
 result = subprocess.call([f"{calibre_bin_path}ebook-convert", book_path, new_book_path])
 
 
 if int(result) != 0:
-    print(f"ebook-convert raised error: {result}")
-    sys.exit(0)
+    logger.critical("ebook-convert raised the following error: %s", result)
+    sys.exit("Conversion raised and error.")
 
 
 file_is_ready = False
@@ -134,10 +131,11 @@ while not file_is_ready and try_counter <= RETRIES:
 
 
 if not file_is_ready:
-    print(f"Converted file doesn't exist in current directory: {folder}")
-    sys.exit(0)
+    logger.critical("Converted file wasn't saved in directory: %s", folder)
+    sys.exit("Ebook conversion failed.")
 
 
+logger.info("Sending converted ebook through email.")
 message = Mail(
     from_email=from_email, to_emails=kindle_email,
     subject='Send To Kindle', html_content='Send To Kindle'
@@ -163,4 +161,7 @@ sg = SendGridAPIClient(api_key)
 response = sg.send(message)
 
 # delete mobi file
+logger.info("Ebook sended. Deleting mobi file now...")
 os.remove(new_book_path)
+
+logger.info("Custom script done.")
